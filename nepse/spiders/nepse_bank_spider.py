@@ -1,5 +1,6 @@
 import scrapy
 import json
+import string
 from datetime import date
 
 
@@ -58,7 +59,14 @@ class NepseBankSpider(scrapy.Spider):
                 'low': r.xpath('td[7]//text()').extract_first(),
                 'close': r.xpath('td[8]//text()').extract_first(),
             })
-        filename = '%s.json' % symbol
-        with open(filename, 'wb') as f:
+        filename = self.format_filename(symbol)
+        filepath = 'historical-prices/%s.json' % filename
+        with open(filepath, 'w') as f:
             json.dump(data, f)
-        self.log('Saved file %s' % filename)
+        self.log('Saved file %s' % filepath)
+    
+    def format_filename(self, s):
+        valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+        filename = ''.join(c for c in s if c in valid_chars)
+        filename = filename.replace(' ','_') # I don't like spaces in filenames.
+        return filename
